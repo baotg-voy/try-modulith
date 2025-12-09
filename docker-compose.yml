@@ -1,0 +1,67 @@
+services:
+    mysql:
+        image: mysql:8.0
+        container_name: tame_mysql
+        restart: unless-stopped
+        environment:
+            MYSQL_ROOT_PASSWORD: rootpassword
+            MYSQL_DATABASE: tame_db
+            MYSQL_USER: tame_user
+            MYSQL_PASSWORD: tame_pass
+        ports:
+            - "3306:3306"
+        volumes:
+            - mysql_data:/var/lib/mysql
+        networks:
+            - tame_network
+
+    postgres:
+        image: postgres:16-alpine
+        container_name: tame_postgres
+        restart: unless-stopped
+        environment:
+            POSTGRES_DB: tame_db
+            POSTGRES_USER: tame_user
+            POSTGRES_PASSWORD: tame_pass
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        networks:
+            - tame_network
+
+    mongodb:
+        image: mongo:7
+        container_name: tame_mongodb
+        restart: unless-stopped
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: root
+            MONGO_INITDB_ROOT_PASSWORD: rootpassword
+            MONGO_INITDB_DATABASE: tame_db
+        ports:
+            - "27018:27017"
+        volumes:
+            - mongo_data:/data/db
+        networks:
+            - tame_network
+
+    # app:
+    #     image: php:8.3-fpm
+    #     container_name: tame_app
+    #     volumes:
+    #         - .:/var/www/html
+    #     networks:
+    #         - tame_network
+    #     depends_on:
+    #         - mysql
+    #         - postgres
+    #         - mongodb
+
+volumes:
+    mysql_data:
+    postgres_data:
+    mongo_data:
+
+networks:
+    tame_network:
+        driver: bridge

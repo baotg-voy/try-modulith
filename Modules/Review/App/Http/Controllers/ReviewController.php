@@ -5,7 +5,8 @@ namespace Modules\Review\App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Modules\Product\App\Models\Product;
+use Modules\Review\App\Models\Review;
 
 class ReviewController extends Controller
 {
@@ -14,7 +15,16 @@ class ReviewController extends Controller
      */
     public function index()
     {
-        return view('review::index');
+        // Get reviews from MongoDB with pagination
+        $reviews = Review::orderBy('created_at', 'desc')->paginate(10);
+        
+        // Extract unique product IDs from reviews
+        $productIds = $reviews->pluck('product_id')->unique()->toArray();
+        
+        // Fetch products from MySQL database
+        $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+        
+        return view('review::index', compact('reviews', 'products'));
     }
 
     /**
@@ -22,7 +32,8 @@ class ReviewController extends Controller
      */
     public function create()
     {
-        return view('review::create');
+        $products = Product::all();
+        return view('review::create', compact('products'));
     }
 
     /**
@@ -30,15 +41,17 @@ class ReviewController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        //
-    }
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'author_name' => 'required|string|max:255',
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'required|string|min:10',
+        ]);
 
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
-    {
-        return view('review::show');
+        Review::create($validated);
+
+        return redirect()->route('reviews.index')
+            ->with('success', 'Review created successfully!');
     }
 
     /**
@@ -46,7 +59,9 @@ class ReviewController extends Controller
      */
     public function edit($id)
     {
-        return view('review::edit');
+        $review = Review::findOrFail($id);
+        $products = Product::all();
+        return view('review::edit', compact('review', 'products'));
     }
 
     /**
@@ -54,14 +69,30 @@ class ReviewController extends Controller
      */
     public function update(Request $request, $id): RedirectResponse
     {
-        //
+        $review = Review::findOrFail($id);
+
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'author_name' => 'required|string|max:255',
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'required|string|min:10',
+        ]);
+
+        $review->update($validated);
+
+        return redirect()->route('reviews.index')
+            ->with('success', 'Review updated successfully!');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy($id): RedirectResponse
     {
-        //
+        $review = Review::findOrFail($id);
+        $review->delete();
+
+        return redirect()->route('reviews.index')
+            ->with('success', 'Review deleted successfully!');
     }
 }

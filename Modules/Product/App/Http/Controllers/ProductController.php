@@ -5,7 +5,9 @@ namespace Modules\Product\App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Modules\Category\App\Models\Category;
+use Modules\Product\App\Models\Product;
+use Modules\Review\App\Models\Review;
 
 class ProductController extends Controller
 {
@@ -14,7 +16,8 @@ class ProductController extends Controller
      */
     public function index()
     {
-        return view('product::index');
+        $products = Product::with('category')->paginate(10);
+        return view('product::index', compact('products'));
     }
 
     /**
@@ -22,7 +25,8 @@ class ProductController extends Controller
      */
     public function create()
     {
-        return view('product::create');
+        $categories = Category::all();
+        return view('product::create', compact('categories'));
     }
 
     /**
@@ -30,15 +34,17 @@ class ProductController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        //
-    }
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'price' => 'required|numeric|min:0',
+            'category_id' => 'required|exists:pgsql.categories,id',
+        ]);
 
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
-    {
-        return view('product::show');
+        Product::create($validated);
+
+        return redirect()->route('products.index')
+            ->with('success', 'Product created successfully!');
     }
 
     /**
@@ -46,7 +52,9 @@ class ProductController extends Controller
      */
     public function edit($id)
     {
-        return view('product::edit');
+        $product = Product::findOrFail($id);
+        $categories = Category::all();
+        return view('product::edit', compact('product', 'categories'));
     }
 
     /**
@@ -54,14 +62,31 @@ class ProductController extends Controller
      */
     public function update(Request $request, $id): RedirectResponse
     {
-        //
+        $product = Product::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'price' => 'required|numeric|min:0',
+            'category_id' => 'required|exists:pgsql.categories,id',
+        ]);
+
+        $product->update($validated);
+
+        return redirect()->route('products.index')
+            ->with('success', 'Product updated successfully!');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy($id): RedirectResponse
     {
-        //
+        $product = Product::findOrFail($id);
+        Review::where('product_id', $product->id)->delete();
+        $product->delete();
+
+        return redirect()->route('products.index')
+            ->with('success', 'Product deleted successfully!');
     }
 }

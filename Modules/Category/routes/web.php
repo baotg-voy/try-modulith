@@ -15,5 +15,7 @@ use Modules\Category\App\Http\Controllers\CategoryController;
 */
 
 Route::group([], function () {
-    Route::resource('category', CategoryController::class)->names('category');
+    Route::resource('categories', CategoryController::class)
+        ->names('categories')->except('show', 'delete');
+    Route::get('categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 });

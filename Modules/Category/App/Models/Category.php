@@ -4,6 +4,7 @@ namespace Modules\Category\App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Category\Database\Factories\CategoryFactory;
+use Modules\Product\App\Models\Product;
 
 class Category extends Model {
     use HasFactory;
@@ -22,5 +23,9 @@ class Category extends Model {
     protected static function newFactory(): CategoryFactory
     {
         return CategoryFactory::new();
+    }
+
+    public function products(){
+        return $this->hasMany(Product::class);
     }
 }

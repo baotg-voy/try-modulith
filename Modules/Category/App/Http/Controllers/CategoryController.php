@@ -5,7 +5,8 @@ namespace Modules\Category\App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Illuminate\Support\Str;
+use Modules\Category\App\Models\Category;
 
 class CategoryController extends Controller
 {
@@ -14,7 +15,8 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        return view('category::index');
+        $categories = Category::paginate(10);
+        return view('category::index', compact('categories'));
     }
 
     /**
@@ -30,15 +32,20 @@ class CategoryController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        //
-    }
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:pgsql.categories,name',
+            'slug' => 'nullable|string|max:255|unique:pgsql.categories,slug',
+        ]);
 
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
-    {
-        return view('category::show');
+        // Auto-generate slug if not provided
+        if (empty($validated['slug'])) {
+            $validated['slug'] = Str::slug($validated['name']);
+        }
+
+        Category::create($validated);
+
+        return redirect()->route('categories.index')
+            ->with('success', 'Category created successfully!');
     }
 
     /**
@@ -46,7 +53,8 @@ class CategoryController extends Controller
      */
     public function edit($id)
     {
-        return view('category::edit');
+        $category = Category::findOrFail($id);
+        return view('category::edit', compact('category'));
     }
 
     /**
@@ -54,14 +62,33 @@ class CategoryController extends Controller
      */
     public function update(Request $request, $id): RedirectResponse
     {
-        //
+        $category = Category::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:pgsql.categories,name,' . $id,
+            'slug' => 'nullable|string|max:255|unique:pgsql.categories,slug,' . $id,
+        ]);
+
+        // Auto-generate slug if not provided
+        if (empty($validated['slug'])) {
+            $validated['slug'] = Str::slug($validated['name']);
+        }
+
+        $category->update($validated);
+
+        return redirect()->route('categories.index')
+            ->with('success', 'Category updated successfully!');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy($id): RedirectResponse
     {
-        //
+        $category = Category::findOrFail($id);
+        $category->delete();
+
+        return redirect()->route('categories.index')
+            ->with('success', 'Category deleted successfully!');
     }
 }

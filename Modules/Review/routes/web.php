@@ -15,5 +15,6 @@ use Modules\Review\App\Http\Controllers\ReviewController;
 */
 
 Route::group([], function () {
-    Route::resource('review', ReviewController::class)->names('review');
+    Route::resource('reviews', ReviewController::class)->names('reviews')->except('show', 'destroy');
+    Route::get('reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
 });

@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Product\App\Http\Controllers\ProductController;
+use Modules\Core\App\Http\Controllers\CoreController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,7 +14,6 @@ use Modules\Product\App\Http\Controllers\ProductController;
 |
 */
 
-Route::group([], function () {
-    Route::resource('products', ProductController::class)->names('products')->except('show', 'destroy');
-    Route::get('products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
-});
+// Route::group([], function () {
+//     Route::resource('core', CoreController::class)->names('core');
+// });

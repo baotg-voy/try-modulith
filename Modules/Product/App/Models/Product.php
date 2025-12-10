@@ -3,6 +3,7 @@ namespace Modules\Product\App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Category\App\Models\Category;
 use Modules\Product\Database\Factories\ProductFactory;
 
 class Product extends Model {
@@ -23,5 +24,10 @@ class Product extends Model {
     protected static function newFactory(): ProductFactory
     {
         return ProductFactory::new();
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
     }
 }

@@ -1,0 +1,21 @@
+# templates/phpstan.neon.dist
+
+includes:
+    - /tools/vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 5
+    paths:
+        # Common paths
+        - routes
+        - app
+        - config
+        - database
+    reportUnmatchedIgnoredErrors: false
+
+# REGISTER CUSTOM RULE
+services:
+    -
+        class: Voyager\DevTools\Rules\NoBadCodeInControllerRule
+        tags:
+            - phpstan.rules.rule
